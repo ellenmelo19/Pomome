@@ -5,6 +5,7 @@ import { Menu } from './components/Menu';
 import { Logo } from "./components/Logo";
 import { CountDown } from "./components/Countdown";
 import { DefaultInput } from "./components/DefaultInput";
+import { Cycles } from "./components/Cycles";
 
 export function App() {
 	return (
@@ -29,8 +30,7 @@ export function App() {
                             labelText="Task" 
                             id='meuInput' 
                             type='text'
-                            required
-                            disabled 
+                            placeholder="Digite aqui"
                         />
                     </div>
 
@@ -39,8 +39,7 @@ export function App() {
                     </div>
 
                     <div className="formRow">
-                        <p>Ciclos</p>
-                        <p>0 0 0 0 0 0 0</p>
+                        <Cycles />
                     </div>
 
                     <div className="formRow">
