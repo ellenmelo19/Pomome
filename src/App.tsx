@@ -7,8 +7,8 @@ import { CountDown } from "./components/Countdown";
 import { DefaultInput } from "./components/DefaultInput";
 import { Cycles } from "./components/Cycles";
 import { DefaultButton } from "./components/DefaultButton";
-import { PlayCircleIcon } from "lucide-react";
 import { Footer } from "./components/Footer";
+import { PlayCircleIcon } from "lucide-react";
 
 export function App() {
 	return (
@@ -30,7 +30,7 @@ export function App() {
                <form className='form' action="">
                     <div className="formRow">
                         <DefaultInput 
-                            labelText="Task" 
+                            labelText='task'
                             id='meuInput' 
                             type='text'
                             placeholder="Digite aqui"
