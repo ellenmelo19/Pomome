@@ -68,9 +68,13 @@ export function MainForm() {
             <div className="formRow">
                 <p>Vou trabalhar em 25 min </p>
             </div>
+
+            {state.currentCycle > 0 && (
             <div className="formRow">
                 <Cycles />
             </div>
+            )}
+            
             <div className="formRow">
                 <DefaultButton icon={<PlayCircleIcon />} />
             </div>
