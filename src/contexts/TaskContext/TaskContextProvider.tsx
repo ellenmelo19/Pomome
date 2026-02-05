@@ -9,9 +9,9 @@ type TaskContextProviderProps = {
 export function TaskContextProvider({children}: TaskContextProviderProps) {
     const [state, setState] = useState(initialTaskState);
 
+
     useEffect(() => {
         console.log(state);
-
     },[state]);
 
     return (
