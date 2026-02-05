@@ -11,13 +11,12 @@ import type { TaskModel } from "../../models/TaskModel";
     type: TaskActionTypes.START_TASK;
     payload: TaskModel;
 
- } | {
-    type: TaskActionTypes.INTERRUPT_TASK;
-    payload: TaskModel;
- } ;
+};
 
  export type TaskActionWithoutPayload = {
     type: TaskActionTypes.RESET_STATE;
+ } | {
+    type: TaskActionTypes.INTERRUPT_TASK;
  };
 
  export type TaskActionModel = TaskActionsWithPayload | TaskActionWithoutPayload;
