@@ -41,13 +41,6 @@ export function MainForm() {
 
         dispatch({ type: TaskActionTypes.START_TASK, payload: newTask });
 
-        const worker = new Worker(new URL("../../workers/timerWorker.js", import.meta.url));
-        worker.postMessage('Oi');
-        worker.onmessage = function (event) {
-            console.log('Mensagem do worker:', event.data);
-        }
-        
-
     }
 
     function handleInterruptTask() {
