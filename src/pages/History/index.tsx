@@ -5,8 +5,11 @@ import { Heading } from "../../components/Heading";
 import { MainTemplate } from "../../templates/MainTemplate";
 
 import styles from "./styles.module.css";
+import { formatDate } from "../../utils/formatDate";
+import { getTaskStatus } from "../../utils/getTaskStatus";
 
 export function History() {
+    const {state} = useTaskContext();
 
     return (
         <MainTemplate>
@@ -37,15 +40,21 @@ export function History() {
                             </tr>
                         </thead>
                         <tbody>
-                            {Array.from({ length: 10 }).map((_, index) => {
+                            {state.tasks.map(task => {
+                                const taskTypeDictionary = {
+                                    workTime: "Foco",
+                                    shortBreakTime: "Descanso curto",
+                                    longBreakTime: "Descanso longo",
+                                };
+                                
                                 return (
-                                <tr key={index}>
-                                    <td>Estudar</td>
-                                    <td>25 min</td>
-                                    <td>10/04/2024 08:00</td>
-                                    <td>Concluído</td>
-                                    <td>Foco</td>
-                                </tr>
+                                    <tr key={task.id}>
+                                        <td>{task.name}</td>
+                                        <td>{task.duration}</td>
+                                        <td>{formatDate(task.startDate)}</td>
+                                        <td>{getTaskStatus(task, state.activeTask)}</td>
+                                        <td>{taskTypeDictionary[task.type]}</td>
+                                    </tr>
                                 );
                             })}
                         </tbody>
