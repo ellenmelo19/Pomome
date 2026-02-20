@@ -36,3 +36,12 @@
     padding: 1.6rem;
 
 }
+
+.thSort {
+  cursor: pointer;
+  transition: all 0.1s ease-in-out;
+}
+
+.thSort:hover {
+  filter: brightness(80%);
+}
