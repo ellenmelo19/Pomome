@@ -52,12 +52,18 @@ export function taskReducer(state: TaskStateModel, action: TaskActionModel): Tas
         }
         case TaskActionTypes.RESET_STATE: {
             return {...initialTaskState};
-            }
+        }
         case TaskActionTypes.COUNT_DOWN: {
             return {
                 ...state,
                 secondsRemaining: action.payload.secondsRemaining,
                 formattedSecondsRemaining: formatSecondsToMinutes(action.payload.secondsRemaining),
+            };
+        }
+        case TaskActionTypes.CHANGE_SETTINGS: {
+            return {
+                ...state,
+                config: {...action.payload},
             };
         }
                         
