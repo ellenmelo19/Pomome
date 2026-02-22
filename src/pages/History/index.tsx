@@ -10,7 +10,6 @@ import { getTaskStatus } from "../../utils/getTaskStatus";
 import { useTaskContext } from "../../contexts/TaskContext/useTaskContext";
 import { useEffect, useState } from "react";
 import { sortTasks, type SortTasksOptions } from "../../utils/sortTasks";
-import { initialTaskState } from "../../contexts/TaskContext/initialTaskState";
 import { showMessage } from "../../adapters/showMessage";
 import { TaskActionTypes } from "../../contexts/TaskContext/taskActions";
 
@@ -31,12 +30,16 @@ export function History() {
         setSortTasksOptions(prevState => ({
             ...prevState,
             tasks: sortTasks({
-                tasks: initialTaskState.tasks,
+                tasks: state.tasks,
                 field: prevState.field,
                 direction: prevState.direction,
             }),
         }));
     }, [state.tasks]);
+
+    useEffect(() => {
+        document.title = 'Histórico de Tarefas | Pomome';
+    }, []);
 
     useEffect(() => {
         if(!confirmClearHistory) return;

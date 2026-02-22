@@ -3,13 +3,17 @@ import { Container } from '../../components/Container';
 import { DefaultInput } from '../../components/DefaultInput';
 import { Heading } from '../../components/Heading';
 import { MainTemplate } from '../../templates/MainTemplate';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { DefaultButton } from '../../components/DefaultButton';
 import { useTaskContext } from '../../contexts/TaskContext/useTaskContext';
 import { showMessage } from '../../adapters/showMessage';
 import { TaskActionTypes } from '../../contexts/TaskContext/taskActions';
 
 export function Settings() {
+    useEffect(() => {
+        document.title = 'Configurações | Pomome';
+    }, []);
+
     const {state, dispatch} = useTaskContext();
     const workTimeInput = useRef<HTMLInputElement>(null);
     const shortBreakTimeInput = useRef<HTMLInputElement>(null);
