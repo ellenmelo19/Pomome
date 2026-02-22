@@ -38,14 +38,13 @@ export function MainForm() {
             startDate: Date.now(),
             completeDate: null,
             interruptDate: null,
-            duration: state.config[nextCycleType] ,
+            duration: state.config[nextCycleType],
             type: nextCycleType,
         };
 
         dispatch({ type: TaskActionTypes.START_TASK, payload: newTask });
 
         showMessage.success(`Tarefa "${taskName}" iniciada!`);
-
     }
 
     function handleInterruptTask() {

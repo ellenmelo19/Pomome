@@ -1,25 +1,40 @@
-let isRunning = false;
+let intervalId = null;
 
 self.onmessage = function (event) {
-    if (isRunning) return;
-
-    isRunning = true;
+    const { type, payload } = event.data;
     
-    const state = event.data;
-    const {activeTask, secondsRemaining} = state;
-
-    const endDate = activeTask.startDate + secondsRemaining * 1000;
-    const now = Date.now();
-    let countDownSeconds = Math.ceil((endDate - now) / 1000);
-
-    function tick() {
-        self.postMessage(countDownSeconds);
-
-        const now = Date.now();
-        const countDownSeconds = Math.floor((endDate - now) / 1000);
-
-        setTimeout(tick, 1000);
+    if (type === 'STOP') {
+        if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+            console.log('Worker: timer parado');
+        }
+        return;
     }
+    
+    if (type === 'START') {
+        const { secondsRemaining } = payload;
+        
+        console.log('Worker: iniciando timer com', secondsRemaining, 'segundos');
+        
+        if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
 
-    tick();
+        let counter = secondsRemaining;
+        
+        self.postMessage(counter);
+        
+        intervalId = setInterval(() => {
+            counter--;
+            self.postMessage(counter);
+            
+            if (counter <= 0) {
+                clearInterval(intervalId);
+                intervalId = null;
+                console.log('Worker: timer completado');
+            }
+        }, 1000);
+    }
 };

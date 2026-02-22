@@ -41,12 +41,10 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
           playBeepRef.current();
           playBeepRef.current = null;
         }
+        
         dispatch({
           type: TaskActionTypes.COMPLETE_TASK,
         });
-        if (workerRef.current) {
-          workerRef.current.terminate();
-        }
       } else {
         dispatch({
           type: TaskActionTypes.COUNT_DOWN,
@@ -64,20 +62,26 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
   }, []); 
 
   useEffect(() => {
-    localStorage.setItem('state', JSON.stringify(state));
-
-    if (!state.activeTask) {
+    if (state.activeTask && state.secondsRemaining > 0) {
+      console.log('Iniciando timer com', state.secondsRemaining, 'segundos');
+      
       if (workerRef.current) {
-        workerRef.current.terminate();
+        workerRef.current.startTimer(state.secondsRemaining);
+      }
+    } 
+    else {
+      console.log('Parando timer');
+      
+      if (workerRef.current) {
+        workerRef.current.stopTimer();
       }
     }
+  }, [state.activeTask, state.secondsRemaining]); 
 
+  useEffect(() => {
+    localStorage.setItem('state', JSON.stringify(state));
     document.title = `${state.formattedSecondsRemaining} - Pomome Pomodoro`;
-
-    if (workerRef.current) {
-      workerRef.current.postMessage(state);
-    }
-  }, [state]); 
+  }, [state]);
 
   useEffect(() => {
     if (state.activeTask && playBeepRef.current === null) {

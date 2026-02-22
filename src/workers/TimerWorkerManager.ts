@@ -1,12 +1,11 @@
-import type { TaskStateModel } from "../models/TaskStateModel";
-
 let instance: TimerWorkerManager | null = null;
 
 export class TimerWorkerManager {
     private worker: Worker;
 
     private constructor() {
-        this.worker = new Worker(new URL("./timerWorker.ts", import.meta.url));
+        this.worker = new Worker("/src/workers/timerWorker.js");
+        
     }
 
     static getInstance() {
@@ -16,8 +15,15 @@ export class TimerWorkerManager {
         return instance;
     }
 
-    postMessage(message: TaskStateModel) {
-        this.worker.postMessage(message);
+    startTimer(secondsRemaining: number) {
+        this.worker.postMessage({
+            type: 'START',
+            payload: { secondsRemaining }
+        });
+    }
+
+    stopTimer() {
+        this.worker.postMessage({ type: 'STOP' });
     }
 
     onmessage(cb: (event: MessageEvent) => void) {
@@ -25,8 +31,8 @@ export class TimerWorkerManager {
     }
 
     terminate() {
+        this.stopTimer();
         this.worker.terminate();
         instance = null;
     }
-
 }
