@@ -8,90 +8,71 @@ import styles from "./styles.module.css";
 import { formatDate } from "../../utils/formatDate";
 import { getTaskStatus } from "../../utils/getTaskStatus";
 import { useTaskContext } from "../../contexts/TaskContext/useTaskContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { sortTasks, type SortTasksOptions } from "../../utils/sortTasks";
 import { showMessage } from "../../adapters/showMessage";
 import { TaskActionTypes } from "../../contexts/TaskContext/taskActions";
 
 export function History() {
     const {state, dispatch} = useTaskContext();
-    const [confirmClearHistory, setConfirmClearHistory] = useState(false);
     const hasTasks = state.tasks.length > 0;
 
-    const [sortTasksOptions, setSortTasksOptions] = useState<SortTasksOptions>(() =>{
-        return {
-            tasks: sortTasks({tasks: state.tasks}),
-            field: 'startDate',
-            direction: 'desc',
-        }
+    const [sortConfig, setSortConfig] = useState<Omit<SortTasksOptions, 'tasks'>>({
+        field: 'startDate',
+        direction: 'desc',
     });
 
-    useEffect(() => {
-        setSortTasksOptions(prevState => ({
-            ...prevState,
-            tasks: sortTasks({
-                tasks: state.tasks,
-                field: prevState.field,
-                direction: prevState.direction,
-            }),
-        }));
-    }, [state.tasks]);
+    // Usa useMemo em vez de useEffect para ordenar as tarefas
+    const sortedTasks = useMemo(() => {
+        return sortTasks({
+            tasks: state.tasks,
+            field: sortConfig.field,
+            direction: sortConfig.direction,
+        });
+    }, [state.tasks, sortConfig.field, sortConfig.direction]);
 
     useEffect(() => {
         document.title = 'Histórico de Tarefas | Pomome';
     }, []);
 
     useEffect(() => {
-        if(!confirmClearHistory) return;
-        setConfirmClearHistory(false);
-
-        dispatch({type: TaskActionTypes.RESET_STATE});
-    }, [confirmClearHistory, dispatch]);
-
-    useEffect(() => {
         return () => {
             showMessage.dismiss();
-        }
-    }, [])
+        };
+    }, []);
 
-    function handleSortTasks({field}: Pick<SortTasksOptions, 'field'>) {
-        const newDirection = sortTasksOptions.direction === 'desc' ? 'asc' : 'desc';
-
-        setSortTasksOptions({
-            tasks: sortTasks({
-                tasks: sortTasksOptions.tasks,
-                field,
-                direction: newDirection,
-            }),
+    const handleSortTasks = useCallback(({field}: Pick<SortTasksOptions, 'field'>) => {
+        setSortConfig(prev => ({
             field,
-            direction: newDirection,
-            
-        });
-    }
+            direction: prev.direction === 'desc' ? 'asc' : 'desc',
+        }));
+    }, []);
 
-    function handleResetHistory() {
+    const handleResetHistory = useCallback(() => {
         showMessage.dismiss();
-        showMessage.confirm('Tem certeza que quer apagar o histórico?', confirmation => {
-            setConfirmClearHistory(confirmation);
+        showMessage.confirm('Tem certeza que quer apagar o histórico?', (confirmation: boolean) => {
+            if (confirmation) {
+                dispatch({type: TaskActionTypes.RESET_STATE});
+            }
         });
-    }
+    }, [dispatch]);
 
     return (
         <MainTemplate>
             <Container>
-                < Heading>
-                <span>History</span>
-                {hasTasks && (
-                    <span className={styles.buttonContainer}>
-                        <DefaultButton 
-                        icon={<TrashIcon />} 
-                        color='red'
-                        aria-label='Apagar todo o histórico'
-                        title='Apagar todo o histórico'
-                        onClick={handleResetHistory}
-                        />
-                    </span>
-                )}
+                <Heading>
+                    <span>History</span>
+                    {hasTasks && (
+                        <span className={styles.buttonContainer}>
+                            <DefaultButton 
+                                icon={<TrashIcon />} 
+                                color='red'
+                                aria-label='Apagar todo o histórico'
+                                title='Apagar todo o histórico'
+                                onClick={handleResetHistory}
+                            />
+                        </span>
+                    )}
                 </Heading>
             </Container>
             
@@ -101,15 +82,21 @@ export function History() {
                     <table>
                         <thead>
                             <tr>
-                                <th onClick={() => handleSortTasks({field: 'name'})} className={styles.thSort}>Tarefa ⇕</th>
-                                <th onClick={() => handleSortTasks({field: 'duration'})} className={styles.thSort}>Duração ⇕</th>
-                                <th onClick={() => handleSortTasks({field: 'startDate'})} className={styles.thSort}>Data ⇕</th>
+                                <th onClick={() => handleSortTasks({field: 'name'})} className={styles.thSort}>
+                                    Tarefa {sortConfig.field === 'name' && (sortConfig.direction === 'desc' ? '▼' : '▲')}
+                                </th>
+                                <th onClick={() => handleSortTasks({field: 'duration'})} className={styles.thSort}>
+                                    Duração {sortConfig.field === 'duration' && (sortConfig.direction === 'desc' ? '▼' : '▲')}
+                                </th>
+                                <th onClick={() => handleSortTasks({field: 'startDate'})} className={styles.thSort}>
+                                    Data {sortConfig.field === 'startDate' && (sortConfig.direction === 'desc' ? '▼' : '▲')}
+                                </th>
                                 <th>Status</th>
                                 <th>Tipo</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {sortTasksOptions.tasks.map(task => {
+                            {sortedTasks.map(task => {
                                 const taskTypeDictionary = {
                                     workTime: "Foco",
                                     shortBreakTime: "Descanso curto",
@@ -133,7 +120,6 @@ export function History() {
 
                 {!hasTasks && <p style={{ textAlign: 'center', fontWeight: 'bold'}}>
                     Ainda não existem tarefas criadas</p>}
-
             </Container>
         </MainTemplate>
     );
