@@ -1,4 +1,5 @@
-import { useEffect, useReducer, useRef } from 'react';
+// src/contexts/TaskContext/TaskContextProvider.tsx
+import { useEffect, useReducer, useRef, useCallback } from 'react';
 import { initialTaskState } from './initialTaskState';
 import { TaskContext } from './TaskContext';
 import { taskReducer } from './taskReducer';
@@ -26,46 +27,78 @@ export function TaskContextProvider({ children }: TaskContextProviderProps) {
       formattedSecondsRemaining: '00:00',
     };
   });
+  
   const playBeepRef = useRef<ReturnType<typeof loadBeep> | null>(null);
+  const workerRef = useRef<TimerWorkerManager | null>(null);
 
-  const worker = TimerWorkerManager.getInstance();
-
-  worker.onmessage(e => {
-    const countDownSeconds = e.data;
-
-    if (countDownSeconds <= 0) {
-      if (playBeepRef.current) {
-        playBeepRef.current();
-        playBeepRef.current = null;
-      }
-      dispatch({
-        type: TaskActionTypes.COMPLETE_TASK,
-      });
-      worker.terminate();
-    } else {
-      dispatch({
-        type: TaskActionTypes.COUNT_DOWN,
-        payload: { secondsRemaining: countDownSeconds },
-      });
-    }
-  });
-
+  // Inicializa o worker e configura o handler de mensagens apenas uma vez
   useEffect(() => {
+    // Obtém a instância do worker
+    workerRef.current = TimerWorkerManager.getInstance();
+
+    // Define o handler de mensagens
+    const handleWorkerMessage = (e: MessageEvent) => {
+      const countDownSeconds = e.data;
+
+      if (countDownSeconds <= 0) {
+        if (playBeepRef.current) {
+          playBeepRef.current();
+          playBeepRef.current = null;
+        }
+        dispatch({
+          type: TaskActionTypes.COMPLETE_TASK,
+        });
+        if (workerRef.current) {
+          workerRef.current.terminate();
+        }
+      } else {
+        dispatch({
+          type: TaskActionTypes.COUNT_DOWN,
+          payload: { secondsRemaining: countDownSeconds },
+        });
+      }
+    };
+
+    // Atribui o handler ao worker
+    if (workerRef.current) {
+      workerRef.current.onmessage = handleWorkerMessage;
+    }
+
+    // Cleanup: termina o worker quando o componente for desmontado
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
+    };
+  }, []); // Array vazio = executa apenas uma vez na montagem
+
+  // Efeito para sincronizar estado com localStorage e worker
+  useEffect(() => {
+    // Salva no localStorage
     localStorage.setItem('state', JSON.stringify(state));
 
+    // Se não há tarefa ativa, termina o worker
     if (!state.activeTask) {
-      worker.terminate();
+      if (workerRef.current) {
+        workerRef.current.terminate();
+      }
     }
 
-    document.title = `${state.formattedSecondsRemaining} - Chronos Pomodoro`;
+    // Atualiza o título da página
+    document.title = `${state.formattedSecondsRemaining} - Pomome Pomodoro`;
 
-    worker.postMessage(state);
-  }, [worker, state]);
+    // Envia o estado atual para o worker (se ele existir)
+    if (workerRef.current) {
+      workerRef.current.postMessage(state);
+    }
+  }, [state]); // Executa sempre que o estado mudar
 
+  // Efeito para gerenciar o beep
   useEffect(() => {
     if (state.activeTask && playBeepRef.current === null) {
       playBeepRef.current = loadBeep();
-    } else {
+    } else if (!state.activeTask) {
       playBeepRef.current = null;
     }
   }, [state.activeTask]);
